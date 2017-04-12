@@ -9,4 +9,4 @@ frames = vp.extract_frames()
 for frame in frames:
      cv2.imshow('Football Footage',frame)
 
-vw = VideoWriter('test', frames)
+vw = VideoWriter('test_footage', frames)
