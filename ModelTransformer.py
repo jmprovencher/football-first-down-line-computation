@@ -5,7 +5,6 @@ refPT = list()
 
 
 class ModelTransformer:
-
     def __init__(self, model, first_frame):
         self.refPT = list()
         self.last_frame = first_frame
@@ -53,6 +52,7 @@ class ModelTransformer:
         orb = cv2.ORB_create()
 
         # find the keypoints and descriptors with SIFT
+        cv2.ocl.setUseOpenCL(False)
         kp1, des1 = orb.detectAndCompute(self.last_frame, None)
         kp2, des2 = orb.detectAndCompute(frame, None)
 
@@ -64,10 +64,12 @@ class ModelTransformer:
 
         # Sort them in the order of their distance.
         matches = sorted(matches, key=lambda x: x.distance)
+        print(matches)
 
         src_pts = np.float32([kp1[m.queryIdx].pt for m in matches[:6]]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in matches[:6]]).reshape(-1, 1, 2)
 
+        print(src_pts,dst_pts)
         M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 10000)
         return M
 
@@ -98,7 +100,7 @@ class ModelTransformer:
         mask = np.zeros(frame.shape, np.uint8)
         edges = cv2.Canny(gray, 300, 600, apertureSize=3)
 
-        lines = cv2.HoughLines(edges, 1, np.pi/180, 200, 0, 0)
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200, 0, 0)
         print(lines.shape)
         for line in lines[:, 0, :]:
             rho, theta = line
@@ -113,9 +115,6 @@ class ModelTransformer:
 
             cv2.line(mask, (x1, y1), (x2, y2), (255, 255, 255), 4)
 
-        #mask = cv2.bitwise_or(grass_mask, mask)
-        #return cv2.bitwise_and(mask, frame)
+        # mask = cv2.bitwise_or(grass_mask, mask)
+        # return cv2.bitwise_and(mask, frame)
         return mask
-
-
-
