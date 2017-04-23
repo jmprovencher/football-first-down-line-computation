@@ -17,13 +17,17 @@ frame_transformed = cv2.warpPerspective(frames[13], modelTr.H, (modelTr.cols, mo
 cv2.imshow('model', cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
 cv2.waitKey()
 
+model_frames = []
+
 for frame in frames[14:]:
     modelTr.new_frame(frame)
     frame_transformed = cv2.warpPerspective(frame, modelTr.H, (modelTr.cols, modelTr.rows))
     mask_transformed = cv2.warpPerspective(modelTr.line_mask(frame), modelTr.H, (modelTr.cols, modelTr.rows))
-    cv2.imshow('model', cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
-    cv2.imshow('model_mask', cv2.addWeighted(modelTr.model, 1, mask_transformed, 1, 0))
-    cv2.waitKey()
+    # cv2.imshow('model', cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
+    # cv2.imshow('model_mask', cv2.addWeighted(modelTr.model, 1, mask_transformed, 1, 0))
+    model_frames.append(cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
+    # cv2.waitKey()
+
 
 cv2.destroyAllWindows()
 
@@ -32,3 +36,4 @@ cv2.destroyAllWindows()
 #    frames_with_line.append(LineDrawer(frame).draw_line())
 
 #vw = VideoWriter('test_footage', frames_with_line)
+vw = VideoWriter('aerial_footage', model_frames)
