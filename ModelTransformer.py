@@ -117,8 +117,8 @@ class ModelTransformer:
         dst_pts = np.float32([kp2[m[1]].pt for m in matches_int[:20]]).reshape(-1, 1, 2)
 
         img3 = cv2.drawMatches(img1, kp1, img2, kp2, matches[:20], None,  matchColor=(0, 255, 0), flags=0)
-        cv2.imshow('matches', img3)
-        cv2.waitKey()
+        #cv2.imshow('matches', img3)
+        #cv2.waitKey()
 
         M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 10000)
         #M = cv2.getPerspectiveTransform(src_pts, dst_pts)
@@ -264,7 +264,7 @@ class ModelTransformer:
             """
             new_lines.append([pt1, pt2])
 
-            print(pente, x_intercept, y_intercept)
+            #print(pente, x_intercept, y_intercept)
 
             found = False
             for index, values in enumerate(cluster_values):
@@ -283,7 +283,7 @@ class ModelTransformer:
                 cluster_values.append({'pente': pente, 'x_intercept': x_intercept, 'y_intercept': y_intercept})
                 clusters.append([i])
 
-        print(clusters)
+        #print(clusters)
 
         new_lines = np.asarray(new_lines, np.int)
 
