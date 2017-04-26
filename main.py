@@ -6,13 +6,13 @@ from Model import Model
 from LinePicker import LinePicker
 from ModelTransformer import ModelTransformer
 
-vp = VideoPlayer('resources/video/field1/WideWide - Clip 001.mp4')
+vp = VideoPlayer('resources/video/field3/WideWide - Clip 003.mp4')
 frames = vp.extract_frames()
 frames_with_line = []
 
 modelImage = cv2.imread('resources/model/model_cfl.png')
 model = Model(modelImage)
-modelTr = ModelTransformer(model, frames[13], False)
+modelTr = ModelTransformer(model, frames[13], True)
 
 # frame_transformed = cv2.warpPerspective(frames[13], modelTr.H, (modelTr.cols, modelTr.rows))
 # cv2.imshow('model', cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
@@ -20,7 +20,6 @@ modelTr = ModelTransformer(model, frames[13], False)
 model_frames = list()
 mask_frames = list()
 
-point = (136, 260)
 lp = LinePicker(frames[40])
 first_point = lp.first_down_point
 scrimmage = lp.scrimmage_point
@@ -44,6 +43,7 @@ for index, frame in enumerate(frames[70:]):
     # cv2.imshow('last_mask', last_model_and_mask)
     model_frames.append(model_and_frame)
     # mask_frames.append(mask)
+    cv2.waitKey(1)
     print(index)
 
 cv2.destroyAllWindows()

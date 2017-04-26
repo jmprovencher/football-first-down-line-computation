@@ -11,6 +11,9 @@ def nothing(x):
 vp = VideoPlayer('resources/video/field1/WideWide - Clip 001.mp4')
 frames = vp.extract_frames()
 cv2.namedWindow('image')
+image = frames[40]
+
+
 
 # easy assigments
 hh = 'Hue High'
@@ -20,6 +23,7 @@ sl = 'Saturation Low'
 vh = 'Value High'
 vl = 'Value Low'
 
+
 cv2.createTrackbar(hl, 'image', 0, 179, nothing)
 cv2.createTrackbar(hh, 'image', 0, 179, nothing)
 cv2.createTrackbar(sl, 'image', 0, 255, nothing)
@@ -27,28 +31,28 @@ cv2.createTrackbar(sh, 'image', 0, 255, nothing)
 cv2.createTrackbar(vl, 'image', 0, 255, nothing)
 cv2.createTrackbar(vh, 'image', 0, 255, nothing)
 
-for frame in frames:
-    frame = cv2.GaussianBlur(frame, (5, 5), 0)
-    # convert to HSV from BGR
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+while(1):
+    image=cv2.GaussianBlur(image,(5,5),0)
 
-    # read trackbar positions for all
+    hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    k = cv2.waitKey(1) & 0xFF
+    if k == 27:
+        break
+
+    # get current positions of four trackbars
     hul = cv2.getTrackbarPos(hl, 'image')
     huh = cv2.getTrackbarPos(hh, 'image')
     sal = cv2.getTrackbarPos(sl, 'image')
     sah = cv2.getTrackbarPos(sh, 'image')
     val = cv2.getTrackbarPos(vl, 'image')
     vah = cv2.getTrackbarPos(vh, 'image')
-    # make array for final values
     HSVLOW = np.array([hul, sal, val])
     HSVHIGH = np.array([huh, sah, vah])
-    print(HSVLOW,HSVHIGH)
+
     # apply the range on a mask
     mask = cv2.inRange(hsv, HSVLOW, HSVHIGH)
-    res = cv2.bitwise_and(frame, frame, mask=mask)
-
+    res = cv2.bitwise_and(image, image, mask=mask)
     cv2.imshow('image', res)
-    cv2.imshow('yay', frame)
-    k = cv2.waitKey()
 
-cv2.destroyAllWindows()
+
