@@ -20,7 +20,7 @@ lp = LinePicker(frames[60])
 first_point = lp.first_down_point
 scrimmage = lp.scrimmage_point
 print(first_point, scrimmage)
-hsv_mask = HSVPicker(frames[15]).getHSVMask()
+hsv_mask = HSVPicker(frames[-1]).getHSVMask()
 
 
 ld = LineDrawer(modelTr, first_point, scrimmage, model, hsv_mask)
