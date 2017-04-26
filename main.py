@@ -6,19 +6,14 @@ from Model import Model
 from LinePicker import LinePicker
 from ModelTransformer import ModelTransformer
 
-vp = VideoPlayer('resources/video/field3/WideWide - Clip 003.mp4')
+vp = VideoPlayer('resources/video/field1/WideWide - Clip 004.mp4')
 frames = vp.extract_frames()
 frames_with_line = []
+field_lines_mask = []
 
 modelImage = cv2.imread('resources/model/model_cfl.png')
 model = Model(modelImage)
 modelTr = ModelTransformer(model, frames[13], True)
-
-# frame_transformed = cv2.warpPerspective(frames[13], modelTr.H, (modelTr.cols, modelTr.rows))
-# cv2.imshow('model', cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0))
-
-model_frames = list()
-mask_frames = list()
 
 lp = LinePicker(frames[40])
 first_point = lp.first_down_point
@@ -26,31 +21,44 @@ scrimmage = lp.scrimmage_point
 print(first_point, scrimmage)
 ld = LineDrawer(modelTr, first_point, scrimmage, model)
 
-for index, frame in enumerate(frames[70:]):
+start_index = 70
+
+all_homo = list()
+for index, frame in enumerate(frames[start_index:]):
     modelTr.new_frame(frame)
-    output = ld.applyHomographyToPoint(frame, modelTr.H)
-    frame_transformed = cv2.warpPerspective(frame, modelTr.H, (modelTr.cols, modelTr.rows))
-    # mask, _ = modelTr.line_mask(frame)
-    # mask_transformed = cv2.warpPerspective(modelTr.line_mask(frame), modelTr.H, (modelTr.cols, modelTr.rows))
-    model_and_frame = cv2.addWeighted(modelTr.model, 1, frame_transformed, 1, 0)
-    # model_and_mask = cv2.addWeighted(frame, 1, mask, 1, 0)
-    # last_frame = frames[index-1]
-    # last_model, _ = modelTr.line_mask(last_frame)
-    # last_model_and_mask = cv2.addWeighted(last_frame, 1, last_model, 1, 0)
+    global_lines = modelTr.find_global_lines(frame)
+    #mask = modelTr.line_mask(np.zeros(frame.shape), global_lines)
+    #field_lines_mask.append(mask)
+    #cv2.imshow('mask', mask)
+    #cv2.waitKey(1)
+    all_homo.append(modelTr.H)
+
+
+filter_size = 5
+mean_homo = list()
+for i in range(filter_size):
+    mean_homo.append(all_homo[i])
+
+for i in range(filter_size, len(all_homo) - filter_size):
+    new_homo = all_homo[i]
+    for j in range(filter_size):
+        new_homo += all_homo[i - j]
+        new_homo += all_homo[i + j]
+
+    new_homo /= filter_size*2 + 1
+    mean_homo.append(new_homo)
+
+for i in range(len(all_homo)-filter_size, len(all_homo)):
+    mean_homo.append(all_homo[i])
+
+for index, frame in enumerate(frames[start_index:]):
+    homo = mean_homo[index]
+    output = ld.applyHomographyToPoint(frame, homo)
     frames_with_line.append(output)
-    cv2.imshow('model', model_and_frame)
-    # cv2.imshow('mask', model_and_mask)
-    # cv2.imshow('last_mask', last_model_and_mask)
-    model_frames.append(model_and_frame)
-    # mask_frames.append(mask)
-    cv2.waitKey(1)
+    cv2.imshow('lines', output)
     print(index)
+    cv2.waitKey(1)
 
 cv2.destroyAllWindows()
-
-# for frame in frames:
-#    frames_with_line.append(LineDrawer(frame).draw_line())
-
-# vw = VideoWriter('test_footage', frames_with_line)
-vw = VideoWriter('aerial_footage', model_frames)
 vw = VideoWriter('footage_line_test', frames_with_line)
+#vw = VideoWriter('mask_of_field_lines', field_lines_mask)

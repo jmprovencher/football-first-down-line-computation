@@ -42,6 +42,9 @@ class ModelTransformer:
             model_pts.append((606, 289))
 
         self.H = cv2.getPerspectiveTransform(np.float32(frame_pts), np.float32(model_pts))
+        self.last_H = self.H
+        self.last_good_H = self.H
+        self.idx = 0
 
     def click_gather_point(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -50,21 +53,21 @@ class ModelTransformer:
             self.refPT.append(point)
 
     def new_frame(self, frame):
+        self.idx += 1
         warped_frame = cv2.warpPerspective(frame, self.H, (self.cols, self.rows))
         warped_mask = cv2.warpPerspective(np.ones(frame.shape, np.uint8)*255, self.H, (self.cols, self.rows))
 
-        lines = self.find_global_lines(frame)
+        #lines = self.find_global_lines(frame)
         counter = 0
-        max_percent_good_lines = 2
-        best_transform = [max_percent_good_lines, self.H]
-        while best_transform[0] >= max_percent_good_lines:
-            print("in loop")
-            M = self.get_homography_between_frames(frame, self.last_frame)
-            #M = self.get_homography_between_lines(frame, self.last_frame)
+        max_percent_good_lines = 150000
+        best_transform = [max_percent_good_lines, self.last_good_H]
+        while 1:#best_transform[0] >= max_percent_good_lines:
+            #M = self.get_homography_between_frames(frame, self.last_frame)
+            M = self.get_homography_between_lines(frame, self.last_frame)
             if M is None or M.shape != (3, 3):
                 continue
-            M = np.linalg.inv(M)
-            tmp_H = np.dot(M, self.H)
+            #M = np.linalg.inv(M)
+            tmp_H = np.dot(self.last_H, M)
             percent_good_lines = np.power(tmp_H - self.H, 2).sum() / 9
             #percent_good_lines = self.are_lines_vertical_or_horizontal_in_model(lines, tmp_H)
 
@@ -73,17 +76,16 @@ class ModelTransformer:
                 best_transform[0] = percent_good_lines
                 best_transform[1] = tmp_H
 
-            if counter >= 10:
+            if counter >= 0:
                 break
             counter += 1
-            print(counter)
 
         print(best_transform[0])
-        #if best_transform[0] > 0.0001:
-        #    cv2.waitKey()
+        if best_transform[0] < max_percent_good_lines:
+            self.last_good_H = best_transform[1]
 
-        #self.H = best_transform[1]
-        self.last_frame = frame
+        self.H = best_transform[1]
+        #self.last_frame = frame
 
     def get_homography_between_frames(self, img1, img2, mask=None):
         cv2.ocl.setUseOpenCL(False)
@@ -160,41 +162,16 @@ class ModelTransformer:
 
         mask = self.get_terrain_mask(frame)
 
-        #cv2.imshow('grass', mask)
-        #cv2.waitKey()
-
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         blured_frame = cv2.blur(gray, (7, 7))
         edges = cv2.Canny(blured_frame, 20, 50, apertureSize=3)
-        #edges = cv2.adaptiveThreshold(edges, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        #                                       cv2.THRESH_BINARY_INV, 3, 2)
         edges = cv2.blur(edges, (3, 3))
         edges = cv2.bitwise_and(mask, edges)
 
-        #cv2.imshow('frame', blured_frame)
-        #cv2.imshow('edges', edges)
-        #cv2.waitKey()
-
-        """
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, 80, 30, 10)[:, 0, :]
-        for rho, theta in lines:
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-            
-            list_of_line_points.append(((x1, y1, 1), (x2, y2, 1)))
-        """
-
-        #"""
         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 400, 50, 125)[:, 0, :]
         for x1, y1, x2, y2 in lines:
             list_of_line_points.append(((x1, y1, 1), (x2, y2, 1)))
-        #"""
+
         list_of_line_points = np.float32(list_of_line_points)
 
         return list_of_line_points
@@ -239,6 +216,14 @@ class ModelTransformer:
         new_lines = []
 
         for i, (pt1, pt2) in enumerate(pts):
+
+            if pt1[0] > pt2[0]:
+                pt_tmp = pt1
+                pt2 = pt1
+                pt1 = pt2
+
+                pts[i] = (pt1, pt2)
+
             pente = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0])
             if np.isnan(pente):
                 pente = frame.shape[0]
@@ -261,37 +246,7 @@ class ModelTransformer:
             rectangle = (0, 0, frame.shape[1], frame.shape[0])
             _, pt1, pt2 = cv2.clipLine(rectangle, (pt1[0], pt1[1]), (pt2[0], pt2[1]))
 
-            """
-            pt1_prime = np.dot(self.H, np.asarray(pt1 + (1,), np.float32))
-            pt1_prime /= pt1_prime[-1]
-            pt2_prime = np.dot(self.H, np.asarray(pt2 + (1,), np.float32))
-            pt2_prime /= pt2_prime[-1]
-
-            pt1_prime = pt1_prime.astype(np.int)
-            pt2_prime = pt2_prime.astype(np.int)
-
-            pente = (pt2_prime[1] - pt1_prime[1]) / (pt2_prime[0] - pt1_prime[0])
-            if np.isnan(pente):
-                pente = frame.shape[0]
-            elif np.isinf(pente):
-                pente = 0
-
-            y_intercept = pt1_prime[1] - pente * pt1_prime[0]
-
-            x_intercept = (-y_intercept) / pente
-            if np.isnan(x_intercept) or np.isinf(x_intercept):
-                x_intercept = y_intercept
-
-            x1 = 0
-            y1 = pente * x1 + y_intercept
-            x2 = frame.shape[1]
-            y2 = pente * x2 + y_intercept
-
-            new_lines.append([[x1, y1, 1], [x2, y2, 1]])
-            """
             new_lines.append([pt1, pt2])
-
-            # print(pente, x_intercept, y_intercept)
 
             found = False
             for index, values in enumerate(cluster_values):
@@ -310,39 +265,18 @@ class ModelTransformer:
                 cluster_values.append({'pente': pente, 'x_intercept': x_intercept, 'y_intercept': y_intercept})
                 clusters.append([i])
 
-        # print(clusters)
-
         new_lines = np.asarray(new_lines, np.int)
 
         global_lines = []
-        colors = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (200, 200, 0), (200, 0, 200), (0, 200, 200), (200, 200, 200),
-                  (255, 255, 255)]
         for index, cluster in enumerate(clusters):
             if len(cluster) < 2:
                 continue
 
-            """
-            for pt in cluster:
-                pt1, pt2 = new_lines[pt]
-                rectangle = (0, 0, mask.shape[1], mask.shape[0])
-                clipped = cv2.clipLine(rectangle, (pt1[0], pt1[1]), (pt2[0], pt2[1]))
-                _, pt1, pt2 = clipped
-                cv2.line(mask, (pt1[0], pt1[1]), (pt2[0], pt2[1]), colors[index % len(colors)], 3)
-            """
-
-            # """
             pt1, pt2 = (new_lines[cluster].sum(axis=0) / len(cluster)).astype(int)
             rectangle = (0, 0, frame.shape[1], frame.shape[0])
             clipped = cv2.clipLine(rectangle, (pt1[0], pt1[1]), (pt2[0], pt2[1]))
             _, pt1, pt2 = clipped
             global_lines.append([np.asarray(pt1), np.asarray(pt2)])
-            # """
-        return global_lines
-
-    def line_mask(self, frame):
-        global_lines = self.find_global_lines(frame)
-
-        mask = np.zeros(frame.shape, np.uint8)
 
         for i in range(len(global_lines)):
             for j in range(len(global_lines)):
@@ -371,33 +305,27 @@ class ModelTransformer:
                     min = np.min([max_1, min_1, max_2, min_2], axis=0)
 
                     if min[0] <= r[0] <= max[0] and min[1] <= r[1] <= max[1]:
-                        cv2.circle(mask, (r[0], r[1]), 10, (255, 255, 255), cv2.FILLED)
-
-                        """
                         pente_1 = (p1[1] - o1[1]) / (p1[0] - o1[1])
                         pente_2 = (p2[1] - o2[1]) / (p2[0] - o2[1])
-
                         if np.abs(pente_1) >= 0.1:
                             if pente_1 >= 0:
                                 global_lines[i][0] = r
                             else:
                                 global_lines[i][1] = r
-
                         if np.abs(pente_2) >= 0.1:
                             if pente_2 >=0:
                                 global_lines[j][0] = r
                             else:
                                 global_lines[j][1] = r
-                        """
 
+        return np.asarray(global_lines)
+
+    def line_mask(self, mask, global_lines):
         for line in global_lines:
             (o1, p1), (o2, p2) = line
-
             cv2.line(mask, (o1, p1), (o2, p2), (255, 255, 255), 3)
 
-        global_lines = np.array(global_lines)
-
-        return mask, global_lines
+        return mask
 
     def match_lines(self, lines_1, lines_2):
         matches_dst = np.zeros((len(lines_1), len(lines_2)), np.float32)
@@ -421,17 +349,22 @@ class ModelTransformer:
         return matches
 
     def get_homography_between_lines(self, img1, img2):
-        _, global_lines_1 = self.line_mask(img1)
-        _, global_lines_2 = self.line_mask(img2)
+        mask = np.zeros(img1.shape, np.uint8)
+        global_lines_1 = self.find_global_lines(img1)
+        global_lines_2 = self.find_global_lines(img2)
 
         matches = self.match_lines(global_lines_1, global_lines_2)
 
         matches = sorted(matches, key=lambda x: x[1])
 
+        print(matches)
+
         src_pts = list()
         dst_pts = list()
 
-        for i in range(2):
+        colors1 = ((255, 0, 0), (0, 255, 0), (0, 0, 255))
+        colors2 = ((128, 0, 0), (0, 128, 0), (0, 0, 128))
+        for i in range(min(3, len(matches) - 1)):
             index_1, index_2 = matches[i][0]
 
             pt11, pt12 = global_lines_1[index_1]
@@ -442,10 +375,16 @@ class ModelTransformer:
             dst_pts.append(pt21)
             dst_pts.append(pt22)
 
+            cv2.line(mask, (pt11[0], pt11[1]), (pt12[0], pt12[1]), colors1[i], 2, cv2.LINE_AA)
+            cv2.line(mask, (pt21[0], pt21[1]), (pt22[0], pt22[1]), colors2[i], 2, cv2.LINE_AA)
+
+        cv2.imshow('matching lines', mask)
+        cv2.waitKey(1)
+
         src_pts = np.float32(src_pts)
         dst_pts = np.float32(dst_pts)
 
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 20)
 
         return M
 
