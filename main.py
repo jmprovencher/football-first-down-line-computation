@@ -23,7 +23,7 @@ point = (136, 260)
 ld = LineDrawer(modelTr, point, model)
 
 
-for index, frame in enumerate(frames[14:]):
+for index, frame in enumerate(frames[70:]):
     modelTr.new_frame(frame)
     output = ld.applyHomographyToPoint(frame,modelTr.H)
     frame_transformed = cv2.warpPerspective(frame, modelTr.H, (modelTr.cols, modelTr.rows))
@@ -40,7 +40,6 @@ for index, frame in enumerate(frames[14:]):
     #cv2.imshow('last_mask', last_model_and_mask)
     model_frames.append(model_and_frame)
     #mask_frames.append(mask)
-    cv2.waitKey(1)
     print(index)
 
 

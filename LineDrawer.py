@@ -19,32 +19,16 @@ class LineDrawer:
         cv2.line(line_image, pt1, pt2, (43, 124, 220), 10)
         cv2.line(line_mask, pt1, pt2, (255, 255, 255), 5)
 
-        # field_mask = self.mask_builder(image, 48, 53, 47, 79, 85, 175)
-        # field_mask_inv = cv2.bitwise_not(field_mask)
-        mask_inv_line = cv2.bitwise_not(line_mask)
+        field_mask = self.mask_builder(image, 38, 88, 34, 101, 0, 174)
+        field_mask_inv = cv2.bitwise_not(field_mask)
 
-        # lineToDraw = line_mask - field_mask_inv
+        lineToDraw = cv2.addWeighted(line_mask,1,field_mask_inv,-1,0)
+        lineToDraw_inv = cv2.bitwise_not(lineToDraw)
+        line = cv2.bitwise_and(line_image, line_image, mask=lineToDraw)
         # field = image - mask_inv_line
-        # result = cv2.add(lineToDraw, field)
-        # cv2.imshow('test', result)
-
-        alpha = 1  # Alpha defines the desired opacity of the line
-
-        # Apply inversed mask of the line to get everything expect the line in image
-        frame_not_line_region = cv2.bitwise_and(image, image, mask=mask_inv_line)
-
-        rows, cols, channels = frame_not_line_region.shape
-        roi = frame_not_line_region[0:rows, 0:cols]
-
-        # Take only line from line image.
-        line = cv2.bitwise_and(line_image, line_image, mask=line_mask)
-        # cv2.imshow('line_image', line_image)
-        # cv2.imshow('line_mask', line_image)
-        # cv2.imshow('mask_inv', mask_inv_line)
-        # cv2.imshow('roi', roi)
-        # cv2.imshow('line', line)
-        # Add line to image
-        output = cv2.add(line, roi)
+        field = cv2.bitwise_and(image, image, mask=lineToDraw_inv)
+        output = cv2.addWeighted(line, 1, field, 1, 0)
+        cv2.imshow('output', output)
 
         return output
 
