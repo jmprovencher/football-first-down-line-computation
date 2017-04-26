@@ -32,7 +32,7 @@ cv2.createTrackbar(vl, 'image', 0, 255, nothing)
 cv2.createTrackbar(vh, 'image', 0, 255, nothing)
 
 while(1):
-    image=cv2.GaussianBlur(image,(5,5),0)
+    #image=cv2.GaussianBlur(image,(5,5),0)
 
     hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 

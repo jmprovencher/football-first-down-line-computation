@@ -6,22 +6,22 @@ from Model import Model
 from LinePicker import LinePicker
 from ModelTransformer import ModelTransformer
 
-vp = VideoPlayer('resources/video/field1/WideWide - Clip 004.mp4')
+vp = VideoPlayer('resources/video/field1/WideWide - Clip 001.mp4')
 frames = vp.extract_frames()
 frames_with_line = []
 field_lines_mask = []
 
 modelImage = cv2.imread('resources/model/model_cfl.png')
 model = Model(modelImage)
-modelTr = ModelTransformer(model, frames[13], True)
+modelTr = ModelTransformer(model, frames[13], False)
 
-lp = LinePicker(frames[40])
+lp = LinePicker(frames[60])
 first_point = lp.first_down_point
 scrimmage = lp.scrimmage_point
 print(first_point, scrimmage)
 ld = LineDrawer(modelTr, first_point, scrimmage, model)
 
-start_index = 70
+start_index = 14
 
 all_homo = list()
 for index, frame in enumerate(frames[start_index:]):

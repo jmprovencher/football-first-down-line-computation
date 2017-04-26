@@ -59,15 +59,16 @@ class ModelTransformer:
 
         #lines = self.find_global_lines(frame)
         counter = 0
-        max_percent_good_lines = 150000
+        max_percent_good_lines = 200
         best_transform = [max_percent_good_lines, self.last_good_H]
         while 1:#best_transform[0] >= max_percent_good_lines:
-            #M = self.get_homography_between_frames(frame, self.last_frame)
-            M = self.get_homography_between_lines(frame, self.last_frame)
+            M = self.get_homography_between_frames(frame, self.last_frame)
+            #M = self.get_homography_between_lines(frame, self.last_frame)
             if M is None or M.shape != (3, 3):
-                continue
+                break
             #M = np.linalg.inv(M)
-            tmp_H = np.dot(self.last_H, M)
+            #tmp_H = np.dot(self.last_H, M)
+            tmp_H = np.dot(self.H, M)
             percent_good_lines = np.power(tmp_H - self.H, 2).sum() / 9
             #percent_good_lines = self.are_lines_vertical_or_horizontal_in_model(lines, tmp_H)
 
@@ -85,7 +86,7 @@ class ModelTransformer:
             self.last_good_H = best_transform[1]
 
         self.H = best_transform[1]
-        #self.last_frame = frame
+        self.last_frame = frame
 
     def get_homography_between_frames(self, img1, img2, mask=None):
         cv2.ocl.setUseOpenCL(False)
