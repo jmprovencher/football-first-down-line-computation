@@ -73,11 +73,3 @@ class LineDrawer:
         return self.draw_line(frame, start_line_field, end_line_field, start_scrimmage_line_field,
                               end_scrimmage_line_field)
 
-    def mask_builder(self, frame, hl, hh, sl, sh, vl, vh):
-        # load image, convert to hsv
-        bgr = frame
-        hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-        # set lower and upper bounds of range according to arguements
-        lower_bound = np.array([hl, sl, vl], dtype=np.uint8)
-        upper_bound = np.array([hh, sh, vh], dtype=np.uint8)
-        return cv2.inRange(hsv, lower_bound, upper_bound)
