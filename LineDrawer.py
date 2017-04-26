@@ -3,12 +3,13 @@ import numpy as np
 
 
 class LineDrawer:
-    def __init__(self, modelTr, first_down_point, scrimmage_point, model):
+    def __init__(self, modelTr, first_down_point, scrimmage_point, model, hsv_mask):
         print('Drawing...')
         self._modelTr = modelTr
         self._point = first_down_point
         self._scrimmage_point = scrimmage_point
         self._model = model
+        self._field_mask = hsv_mask
 
         self.homogeneous_point = np.array([self._point], dtype=np.float32)
         self.point_in_model = cv2.perspectiveTransform(np.array([self.homogeneous_point]), self._modelTr.H)
@@ -30,7 +31,8 @@ class LineDrawer:
         cv2.line(scrimmage_line_image, pt3, pt4, (131, 65, 20), 10)
         cv2.line(scrimmage_line_mask, pt3, pt4, (255, 255, 255), 3)
 
-        field_mask = self.mask_builder(image, 38, 88, 34, 101, 0, 174)
+        #field_mask = self.mask_builder(image, 38, 88, 34, 101, 0, 174)
+        field_mask = self._field_mask
         field_mask_inv = cv2.bitwise_not(field_mask)
 
         lineToDraw = cv2.addWeighted(line_mask, 1, field_mask_inv, -1, 0)

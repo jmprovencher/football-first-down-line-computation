@@ -5,6 +5,7 @@ from LineDrawer import LineDrawer
 from Model import Model
 from LinePicker import LinePicker
 from ModelTransformer import ModelTransformer
+from HSVTrackbar import HSVPicker
 
 vp = VideoPlayer('resources/video/field1/WideWide - Clip 004.mp4')
 frames = vp.extract_frames()
@@ -19,7 +20,10 @@ lp = LinePicker(frames[40])
 first_point = lp.first_down_point
 scrimmage = lp.scrimmage_point
 print(first_point, scrimmage)
-ld = LineDrawer(modelTr, first_point, scrimmage, model)
+hsv_mask = HSVPicker(frames[15]).getHSVMask()
+
+
+ld = LineDrawer(modelTr, first_point, scrimmage, model, hsv_mask)
 
 start_index = 70
 
