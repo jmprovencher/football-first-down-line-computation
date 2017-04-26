@@ -18,12 +18,14 @@ modelTr = ModelTransformer(model, frames[13], False)
 
 model_frames = list()
 mask_frames = list()
+point = (136, 260)
 
-for index, frame in enumerate(frames[14:250]):
-    point = (136, 260)
+ld = LineDrawer(modelTr, point, model)
+
+
+for index, frame in enumerate(frames[14:]):
     modelTr.new_frame(frame)
-    ld = LineDrawer(frame,modelTr,point,model)
-    output = ld.applyHomographyToPoint()
+    output = ld.applyHomographyToPoint(frame,modelTr.H)
     frame_transformed = cv2.warpPerspective(frame, modelTr.H, (modelTr.cols, modelTr.rows))
     #mask, _ = modelTr.line_mask(frame)
     #mask_transformed = cv2.warpPerspective(modelTr.line_mask(frame), modelTr.H, (modelTr.cols, modelTr.rows))
