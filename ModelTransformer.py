@@ -42,6 +42,9 @@ class ModelTransformer:
             model_pts.append((606, 289))
 
         self.H = cv2.getPerspectiveTransform(np.float32(frame_pts), np.float32(model_pts))
+        self.last_H = self.H
+        self.last_good_H = self.H
+        self.idx = 0
 
     def click_gather_point(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -50,21 +53,22 @@ class ModelTransformer:
             self.refPT.append(point)
 
     def new_frame(self, frame):
+        self.idx += 1
         warped_frame = cv2.warpPerspective(frame, self.H, (self.cols, self.rows))
         warped_mask = cv2.warpPerspective(np.ones(frame.shape, np.uint8)*255, self.H, (self.cols, self.rows))
 
         lines = self.find_global_lines(frame)
         counter = 0
-        max_percent_good_lines = 2
-        best_transform = [max_percent_good_lines, self.H]
-        while best_transform[0] >= max_percent_good_lines:
+        max_percent_good_lines = 2000 + 200 * self.idx
+        best_transform = [max_percent_good_lines, self.last_good_H]
+        while 1:#best_transform[0] >= max_percent_good_lines:
             print("in loop")
-            M = self.get_homography_between_frames(frame, self.last_frame)
-            #M = self.get_homography_between_lines(frame, self.last_frame)
+            #M = self.get_homography_between_frames(frame, self.last_frame)
+            M = self.get_homography_between_lines(frame, self.last_frame)
             if M is None or M.shape != (3, 3):
                 continue
-            M = np.linalg.inv(M)
-            tmp_H = np.dot(M, self.H)
+            #M = np.linalg.inv(M)
+            tmp_H = np.dot(M, self.last_H)
             percent_good_lines = np.power(tmp_H - self.H, 2).sum() / 9
             #percent_good_lines = self.are_lines_vertical_or_horizontal_in_model(lines, tmp_H)
 
@@ -73,17 +77,16 @@ class ModelTransformer:
                 best_transform[0] = percent_good_lines
                 best_transform[1] = tmp_H
 
-            if counter >= 10:
+            if counter >= 0:
                 break
             counter += 1
-            print(counter)
 
         print(best_transform[0])
-        #if best_transform[0] > 0.0001:
-        #    cv2.waitKey()
+        if best_transform[0] < max_percent_good_lines:
+            self.last_good_H = best_transform[1]
 
-        #self.H = best_transform[1]
-        self.last_frame = frame
+        self.H = best_transform[1]
+        #self.last_frame = frame
 
     def get_homography_between_frames(self, img1, img2, mask=None):
         cv2.ocl.setUseOpenCL(False)
@@ -239,6 +242,14 @@ class ModelTransformer:
         new_lines = []
 
         for i, (pt1, pt2) in enumerate(pts):
+
+            if pt1[0] > pt2[0]:
+                pt_tmp = pt1
+                pt2 = pt1
+                pt1 = pt2
+
+                pts[i] = (pt1, pt2)
+
             pente = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0])
             if np.isnan(pente):
                 pente = frame.shape[0]
@@ -428,10 +439,12 @@ class ModelTransformer:
 
         matches = sorted(matches, key=lambda x: x[1])
 
+        print(matches)
+
         src_pts = list()
         dst_pts = list()
 
-        for i in range(2):
+        for i in range(min(3, len(matches) - 1)):
             index_1, index_2 = matches[i][0]
 
             pt11, pt12 = global_lines_1[index_1]
@@ -445,7 +458,7 @@ class ModelTransformer:
         src_pts = np.float32(src_pts)
         dst_pts = np.float32(dst_pts)
 
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 20)
 
         return M
 
