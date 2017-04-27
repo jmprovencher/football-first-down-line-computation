@@ -10,7 +10,7 @@ from HSVTrackbar import HSVPicker
 
 if __name__ == '__main__':
 
-    vp = VideoPlayer('resources/video/field4/WideWide - Clip 006.mp4')
+    vp = VideoPlayer('resources/video/field4/WideWide - Clip 005.mp4')
     frames = vp.extract_frames()
     frames_with_line = []
     field_lines_mask = []
@@ -33,8 +33,15 @@ if __name__ == '__main__':
     for index, frame in enumerate(frames[start_index:]):
         try:
             modelTr.new_frame(frame)
+            #transformed_frame = cv2.warpPerspective(frame, modelTr.H, (frame.shape[1], frame.shape[0]))
+            #model_and_frame = cv2.addWeighted(transformed_frame, 1, modelTr.model, 1, 0)
+            #cv2.imshow('model_and_frame', model_and_frame)
+            #cv2.waitKey()
             #global_lines = modelTr.find_global_lines(frame)
             #mask = modelTr.line_mask(np.zeros(frame.shape), global_lines)
+            #mask_and_frame = cv2.addWeighted(frame.astype(np.uint8), 1, mask.astype(np.uint8), 1, 0)
+            #cv2.imshow('mask_and_frame', mask_and_frame)
+            #cv2.waitKey()
             #field_lines_mask.append(mask)
             #cv2.imshow('mask', mask)
             #cv2.waitKey(1)
@@ -42,7 +49,6 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
             break
-
 
     filter_size = 5
     mean_homo = list()
@@ -62,13 +68,17 @@ if __name__ == '__main__':
         mean_homo.append(all_homo[i])
 
     for index in range(len(mean_homo)):
-        homo = mean_homo[index]
-        frame = frames[index]
-        output = ld.applyHomographyToPoint(frame, homo)
-        frames_with_line.append(output)
-        cv2.imshow('lines', output)
-        print(index)
-        cv2.waitKey(1)
+        try:
+            homo = mean_homo[index]
+            frame = frames[index]
+            output = ld.applyHomographyToPoint(frame, homo)
+            frames_with_line.append(output)
+            cv2.imshow('lines', output)
+            print(index)
+            cv2.waitKey(1)
+        except Exception as e:
+            print(e)
+            continue
 
     cv2.destroyAllWindows()
     vw = VideoWriter('footage_line_test', frames_with_line)

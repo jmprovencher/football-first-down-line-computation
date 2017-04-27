@@ -55,12 +55,12 @@ class ModelTransformer:
 
     def new_frame(self, frame):
         self.idx += 1
-        warped_frame = cv2.warpPerspective(frame, self.H, (self.cols, self.rows))
-        warped_mask = cv2.warpPerspective(np.ones(frame.shape, np.uint8)*255, self.H, (self.cols, self.rows))
+        #warped_frame = cv2.warpPerspective(frame, self.H, (self.cols, self.rows))
+        #warped_mask = cv2.warpPerspective(np.ones(frame.shape, np.uint8)*255, self.H, (self.cols, self.rows))
 
         #lines = self.find_global_lines(frame)
         counter = 0
-        max_percent_good_lines = 400000
+        max_percent_good_lines = 200000
         best_transform = [max_percent_good_lines, self.last_good_H]
         while 1:#best_transform[0] >= max_percent_good_lines:
             #M = self.get_homography_between_frames(frame, self.last_frame)
@@ -161,15 +161,26 @@ class ModelTransformer:
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         blured_frame = cv2.blur(gray, (7, 7))
+
+        #cv2.imshow('blured_frame', blured_frame)
+
         edges = cv2.Canny(blured_frame, 20, 50, apertureSize=3)
         edges = cv2.blur(edges, (3, 3))
+
+        #cv2.imshow('Canny_blurred', edges)
+
         edges = cv2.bitwise_and(mask, edges)
+
+        #cv2.imshow('Canny_cut', edges)
 
         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 400, 50, 125)[:, 0, :]
         for x1, y1, x2, y2 in lines:
             list_of_line_points.append(((x1, y1, 1), (x2, y2, 1)))
 
         list_of_line_points = np.float32(list_of_line_points)
+
+        #cv2.imshow('all_lines', self.line_mask(np.zeros(frame.shape, np.uint8), list_of_line_points[:, :, :2]))
+        #cv2.waitKey()
 
         return list_of_line_points
 
@@ -318,6 +329,8 @@ class ModelTransformer:
         return np.asarray(global_lines)
 
     def line_mask(self, mask, global_lines):
+        #print(global_lines)
+
         for line in global_lines:
             (o1, p1), (o2, p2) = line
             cv2.line(mask, (o1, p1), (o2, p2), (255, 255, 255), 3)
