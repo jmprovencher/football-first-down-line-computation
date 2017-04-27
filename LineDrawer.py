@@ -3,13 +3,13 @@ import numpy as np
 
 
 class LineDrawer:
-    def __init__(self, modelTr, first_down_point, scrimmage_point, model, hsv_mask):
+    def __init__(self, modelTr, first_down_point, scrimmage_point, model, hsv_values):
         print('Drawing...')
         self._modelTr = modelTr
         self._point = first_down_point
         self._scrimmage_point = scrimmage_point
         self._model = model
-        self._field_mask = hsv_mask
+        self._hsv_low, self._hsv_high = hsv_values
 
         self.homogeneous_point = np.array([self._point], dtype=np.float32)
         self.point_in_model = cv2.perspectiveTransform(np.array([self.homogeneous_point]), self._modelTr.H)
@@ -32,8 +32,11 @@ class LineDrawer:
         cv2.line(scrimmage_line_mask, pt3, pt4, (255, 255, 255), 3)
 
         #field_mask = self.mask_builder(image, 38, 88, 34, 101, 0, 174)
-        field_mask = self._field_mask
+        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        field_mask = cv2.inRange(hsv_image, self._hsv_low, self._hsv_high)
         field_mask_inv = cv2.bitwise_not(field_mask)
+
+        cv2.imshow('field_mask', field_mask)
 
         lineToDraw = cv2.addWeighted(line_mask, 1, field_mask_inv, -1, 0)
         lineToDraw_inv = cv2.bitwise_not(lineToDraw)
@@ -48,6 +51,10 @@ class LineDrawer:
         both_field = cv2.bitwise_and(lineToDraw_inv,scrimmage_lineToDraw_inv)
         field = cv2.bitwise_and(image, image, mask=both_field)
         output = cv2.addWeighted(both_lines, 1, field, 1, 0)
+
+        cv2.imshow('both_lines', both_lines)
+        cv2.imshow('both_field', both_field)
+        cv2.waitKey()
 
         return output
 

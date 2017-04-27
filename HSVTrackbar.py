@@ -52,4 +52,4 @@ class HSVPicker():
             mask = cv2.inRange(hsv, HSVLOW, HSVHIGH)
             res = cv2.bitwise_and(self._image, self._image, mask=mask)
             cv2.imshow('image', res)
-        return mask
+        return HSVLOW, HSVHIGH
