@@ -10,7 +10,7 @@ from HSVTrackbar import HSVPicker
 
 if __name__ == '__main__':
 
-    vp = VideoPlayer('resources/video/field4/WideWide - Clip 005.mp4')
+    vp = VideoPlayer('resources/video/field3/WideWide - Clip 003.mp4')
     frames = vp.extract_frames()
     frames_with_line = []
     field_lines_mask = []
