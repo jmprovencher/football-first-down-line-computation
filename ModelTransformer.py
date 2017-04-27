@@ -6,8 +6,9 @@ refPT = list()
 
 
 class ModelTransformer:
-    def __init__(self, model, first_frame, with_points=False):
+    def __init__(self, model, first_frame, hsv_values, with_points=False):
         self.H = np.identity(3, np.float32)
+        self.hsv_low, self.hsv_high = hsv_values
 
         self.last_frame = first_frame
         self.rows, self.cols, channels = first_frame.shape
@@ -59,7 +60,7 @@ class ModelTransformer:
 
         #lines = self.find_global_lines(frame)
         counter = 0
-        max_percent_good_lines = 200000
+        max_percent_good_lines = 400000
         best_transform = [max_percent_good_lines, self.last_good_H]
         while 1:#best_transform[0] >= max_percent_good_lines:
             #M = self.get_homography_between_frames(frame, self.last_frame)
@@ -142,13 +143,8 @@ class ModelTransformer:
         return M
 
     def get_terrain_mask(self, frame):
-        # grass [45, 44, 89] [55, 86, 174]
-        # white [0, 0, 150] [165, 40, 255]
-        min_hsv = np.asarray([45, 44, 89])
-        max_hsv = np.asarray([55, 86, 174])
-        dst = cv2.GaussianBlur(frame, (11, 11), 0)
-        hsv = cv2.cvtColor(dst, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, min_hsv, max_hsv)
+        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv_image, self.hsv_low, self.hsv_high)
 
         mask = cv2.erode(mask, np.ones((3, 3)))
         mask = cv2.dilate(mask, np.ones((31, 31)))
@@ -385,7 +381,11 @@ class ModelTransformer:
         src_pts = np.float32(src_pts)
         dst_pts = np.float32(dst_pts)
 
-        M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 20)
+        try:
+            M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 20)
+        except Exception as e:
+            print(e)
+            M = None
 
         return M
 
