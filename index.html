@@ -53,6 +53,14 @@
 
 
 
+
+
+
+
+
+
+
+
     </script>
 </head>
 
@@ -106,7 +114,8 @@
             over the football footage management using web application. Having this kind of footage available on a
             backend server represent tremendous possibility to create automation process in order to add values to
             this footage with things such as first down and scrimmage lines.</p>
-        <img style="max-width: 100%;max-height: 300px"
+        <img style="max-height: 400px;display: block;
+    margin: 0 auto;"
              src="static/img/nfl_line.png"/>
     </div>
     <div class="row">
@@ -131,7 +140,64 @@
         <p>In order to draw the lines on the field, the first step is to compute the transformation matrix between the
             actual frame and the footbal field model. To find the homography matrix between the frame and the field
             model, the user need to gather 4 matching reference points in each of them.</p>
-        <img src="static/img/homographyMatrix.png">
+        <div class="row">
+            <h3 style="text-align: center"> Homography matrix calculation
+            </h3>
+            <img src="static/img/homographyMatrix.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Lines detection
+                </h3>
+                <img src="static/img/lines_detected.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Detected lines in original image
+                </h3>
+                <img src="static/img/lines_detected_over_image.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Lines extraction
+                </h3>
+                <img src="static/img/lines.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+            <div class="col-md-6">
+                <h3 style="text-align: center"> blurred image
+                </h3>
+                <img src="static/img/blurred.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Canny
+                </h3>
+                <img src="static/img/canny.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Canny cut
+                </h3>
+                <img src="static/img/canny_cut.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+        </div>
+
+
+        <div class="row">
+            <h3 style="text-align: center"> Homography applied to original image in model
+            </h3>
+            <img src="static/img/aerial_view.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
+
+
         <p>
             Once the homography matrix is computed, we select a point where the first down line should be located and a
             point for the scrimmage line. Next, the homography matrix is applied to both points to get the location of
@@ -139,6 +205,12 @@
             y coordinates of both sidelines to create the extremities of the first down and scrimmage line in the field
             model.
         </p>
+        <div class="row">
+            <h3 style="text-align: center"> Transformed points in field model
+            </h3>
+            <img src="static/img/points_in_model.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
         <p>
             The inverted homography matrix is next applied to these lines extremities to retrieve the start and end
             point for each lines in the original image.
@@ -146,17 +218,47 @@
     </div>
     <div class="row">
         <h2>Line drawing</h2>
-        Now that the proper homography matrix has been calculated, the next step is to create masks in order to draw
-        both lines on the field. To obtain realistic results, it's key to make sure that players and referees look like
-        they are walking over the line. In order to achieve this, a window is created with HSV values sliders. This
-        window allows to render the field mask with the current HSV values of the mask. Once the displayed mask is
-        satisfying, two line masks are draw with the starting and ending points for each line calculated in the previous
-        step.
+        <p>
+            Now that the proper homography matrix has been calculated, the next step is to create masks in order to draw
+            both lines on the field. To obtain realistic results, it's key to make sure that players and referees look
+            like
+            they are walking over the line. In order to achieve this, a window is created with HSV values sliders. This
+            window allows to render the field mask with the current HSV values of the mask. Once the displayed mask is
+            satisfying, two line masks are draw with the starting and ending points for each line calculated in the
+            previous
+            step.
+        </p>
+        <div class="row">
+            <h3 style="text-align: center"> HSV mask builder with sliders
+            </h3>
+            <img src="static/img/hsv_trackbar.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
+        <div class="row">
+            <h3 style="text-align: center"> Generated field mask
+            </h3>
+            <img src="static/img/field_mask.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
+
+
         <p>
             Using different bitwise operations on masks, the inverted HSV field mask and the line mask are added
             together resulting in a line mask minus everything that is not the field such as players and referees. Next,
             those 2 lines are draw on the field.
         </p>
+        <div class="row">
+            <h3 style="text-align: center"> Lines mask
+            </h3>
+            <img src="static/img/lines_mask.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
+        <div class="row">
+            <h3 style="text-align: center"> Generated image with first down and scrimmage lines
+            </h3>
+            <img src="static/img/generated_image.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+        </div>
     </div>
 
 
