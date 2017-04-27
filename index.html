@@ -21,46 +21,6 @@
       tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], equationNumbers: { autoNumber: "AMS" }}
     });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </script>
 </head>
 
@@ -146,49 +106,72 @@
             <img src="static/img/homographyMatrix.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
         </div>
+        <p>
+            Once the first homography is done by hand between the model and
+            the first frame of the video, we can now find the homography of
+            each following frame with the first frame. By dot multiplying them
+            together we can retrieve the full homography of any frame to the model.
+        </p>
+        <p>
+            The first step to automize this process is to find the lines of the field of play.
+            A simple feature matching of the frames will not give a good result because
+            the moving players are often good features, but they are moving fast. To find the lines,
+            we use a Canny detector with a Hough Probabilistique algorithm.
+        </p>
         <div class="row">
-            <div class="col-md-6">
-                <h3 style="text-align: center"> Lines detection
-                </h3>
-                <img src="static/img/lines_detected.png" style="max-height: 400px;display: block;
-    margin: 0 auto;margin-bottom:20px">
-            </div>
-            <div class="col-md-6">
-                <h3 style="text-align: center"> Detected lines in original image
-                </h3>
-                <img src="static/img/lines_detected_over_image.png" style="max-height: 400px;display: block;
-    margin: 0 auto;margin-bottom:20px">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <h3 style="text-align: center"> Lines extraction
-                </h3>
-                <img src="static/img/lines.png" style="max-height: 400px;display: block;
-    margin: 0 auto;margin-bottom:20px">
-            </div>
             <div class="col-md-6">
                 <h3 style="text-align: center"> blurred image
                 </h3>
                 <img src="static/img/blurred.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-6">
                 <h3 style="text-align: center"> Canny
                 </h3>
                 <img src="static/img/canny.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
+        </div>
+        <div class="row">
             <div class="col-md-6">
                 <h3 style="text-align: center"> Canny cut
                 </h3>
                 <img src="static/img/canny_cut.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
-        </div>
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Lines extraction
+                </h3>
+                <img src="static/img/lines.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
 
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Detected lines in original image
+                </h3>
+                <img src="static/img/lines_detected_over_image.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+            <div class="col-md-6">
+                <h3 style="text-align: center"> Lines detection
+                </h3>
+                <img src="static/img/lines_detected.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
+            </div>
+        </div>
+        <p>
+            We first blur the image to help the Canny detector to find smoother
+            contours in the frame. We than use a Canny detector to find the contours.
+            With of mask of the playing field (explained later) we can cut out un desired
+            parts of the image. We can than find lines with the HoughLine detector algorithm.
+            This algorithm will find all straight lines of a specific length minimum.
+            We can then cluster the many lines into groups and find the median of the cluster.
+            This will reveal all the lines of the field that are visible. Finaly we use a SSD to find
+            the closest lines between to frames. We use at most 3 lines to do the Homography.
+        </p>
+
+            $$ \epsilon_{\hat{Y},Y} = \frac{1}{n} \sum_{i=1}^{n}(\hat{Y}_i - Y_i)^2 \quad ,$$
 
         <div class="row">
             <h3 style="text-align: center"> Homography applied to original image in model
@@ -196,8 +179,6 @@
             <img src="static/img/aerial_view.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
         </div>
-
-
         <p>
             Once the homography matrix is computed, we select a point where the first down line should be located and a
             point for the scrimmage line. Next, the homography matrix is applied to both points to get the location of
