@@ -18,6 +18,13 @@ class LineDrawer:
         self.scrimmage_point_in_model = cv2.perspectiveTransform(np.array([self.homogeneous_point_scrimmage]),
                                                                  self._modelTr.H)
 
+        #self.model_image = np.copy(self._modelTr.model)
+        #print(self.scrimmage_point_in_model)
+        #cv2.circle(self.model_image, (self.scrimmage_point_in_model[0][0][0], self.scrimmage_point_in_model[0][0][1]), 10, (255, 0, 0), cv2.FILLED)
+        #cv2.circle(self.model_image, (self.point_in_model[0][0][0], self.point_in_model[0][0][1]), 10, (0, 0, 255), cv2.FILLED)
+        #cv2.imshow('model_plus_line_points', self.model_image)
+        #cv2.waitKey()
+
     def draw_line(self, image, pt1, pt2, pt3, pt4):
         print(pt1,pt2,pt3,pt4)
         height, width, depth = image.shape
@@ -36,7 +43,7 @@ class LineDrawer:
         field_mask = cv2.inRange(hsv_image, self._hsv_low, self._hsv_high)
         field_mask_inv = cv2.bitwise_not(field_mask)
 
-        cv2.imshow('field_mask', field_mask)
+        #cv2.imshow('field_mask', field_mask)
 
         lineToDraw = cv2.addWeighted(line_mask, 1, field_mask_inv, -1, 0)
         lineToDraw_inv = cv2.bitwise_not(lineToDraw)
@@ -52,9 +59,10 @@ class LineDrawer:
         field = cv2.bitwise_and(image, image, mask=both_field)
         output = cv2.addWeighted(both_lines, 1, field, 1, 0)
 
-        cv2.imshow('both_lines', both_lines)
-        cv2.imshow('both_field', both_field)
-        cv2.waitKey()
+        #cv2.imshow('both_lines', both_lines)
+        #cv2.imshow('both_field', both_field)
+        #cv2.imshow('output', output)
+        #cv2.waitKey()
 
         return output
 
