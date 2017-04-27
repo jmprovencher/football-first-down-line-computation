@@ -21,6 +21,11 @@
       tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], equationNumbers: { autoNumber: "AMS" }}
     });
 
+
+
+
+
+
     </script>
 </head>
 
@@ -77,6 +82,9 @@
         <img style="max-height: 400px;display: block;
     margin: 0 auto;"
              src="static/img/nfl_line.png"/>
+        <iframe style="max-height: 400px;display: block;
+    margin: 0 auto;" width="560" height="315" src="https://www.youtube.com/embed/0bsGEqvSffg" frameborder="0"
+                allowfullscreen></iframe>
     </div>
     <div class="row">
         <h2>Project description</h2>
@@ -140,23 +148,23 @@
     margin: 0 auto;margin-bottom:20px">
             </div>
             <div class="col-md-6">
-                <h3 style="text-align: center"> Lines extraction
+                <h3 style="text-align: center"> blurred image
                 </h3>
-                <img src="static/img/lines.png" style="max-height: 400px;display: block;
+                <img src="static/img/blurred.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
-
+        </div>
         <div class="row">
             <div class="col-md-6">
-                <h3 style="text-align: center"> Detected lines in original image
+                <h3 style="text-align: center"> Canny
                 </h3>
-                <img src="static/img/lines_detected_over_image.png" style="max-height: 400px;display: block;
+                <img src="static/img/canny.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
             <div class="col-md-6">
-                <h3 style="text-align: center"> Lines detection
+                <h3 style="text-align: center"> Canny cut
                 </h3>
-                <img src="static/img/lines_detected.png" style="max-height: 400px;display: block;
+                <img src="static/img/canny_cut.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
             </div>
         </div>
@@ -171,7 +179,8 @@
             the closest lines between to frames. We use at most 3 lines to do the Homography.
         </p>
 
-            $$ \epsilon_{\hat{Y},Y} = \frac{1}{n} \sum_{i=1}^{n}(\hat{Y}_i - Y_i)^2 \quad ,$$
+        $$ \epsilon_{\hat{Y},Y} = \frac{1}{n} \sum_{i=1}^{n}(\hat{Y}_i - Y_i)^2 \quad ,$$
+
 
         <div class="row">
             <h3 style="text-align: center"> Homography applied to original image in model
@@ -179,6 +188,8 @@
             <img src="static/img/aerial_view.png" style="max-height: 400px;display: block;
     margin: 0 auto;margin-bottom:20px">
         </div>
+
+
         <p>
             Once the homography matrix is computed, we select a point where the first down line should be located and a
             point for the scrimmage line. Next, the homography matrix is applied to both points to get the location of
@@ -248,13 +259,33 @@
         <h2>Results</h2>
         <p>Field 1 - Clip 1</p>
         <img src="static/img/folder_1_clip_1.gif">
-          <p>Field 1 - Clip 2</p>
+        <p>Field 1 - Clip 2</p>
         <img src="static/img/folder_1_clip_2.gif">
-                  <p>Field 4 - Clip 5</p>
+        <p>Field 3 - Clip 2</p>
+        <img src="static/img/folder_3_clip_2.gif">
+        <p>Field 3 - Clip 3</p>
+        <img src="static/img/folder_3_clip_3.gif">
+        <p>Field 4 - Clip 5</p>
         <img src="static/img/folder_4_clip_5.gif">
-                  <p>Field 4 - Clip 6</p>
+        <p>Field 4 - Clip 6</p>
         <img src="static/img/folder_4_clip_6.gif">
 
+
+    </div>
+    <p>
+        As we can see in the different results, homography is often well computed in the first frames of the video when
+        the camera hasn't move too much. As soon as the camera starts moving too much, homography calculation starts to
+        fail and we lose the lines in the image. However, the line drawing in the footage is working pretty well. In the
+        frames where the lines are draw, the masks seems to be well generated and the players and referees walk over it
+        with no apparent problem. On certain fields, when the lighting is not very uniform, some problems occur due to
+        the HSV mask and lines are sometimes not draw on certain spots on the field where they should be draw.
+
+    </p>
+    <div class="row">
+        <h3 style="text-align: center"> Line drawing problem on field with non-uniform lighting
+        </h3>
+        <img src="static/img/results_discussion.png" style="max-height: 400px;display: block;
+    margin: 0 auto;margin-bottom:20px">
     </div>
 
 
