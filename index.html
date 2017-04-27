@@ -26,6 +26,7 @@
 
 
 
+
     </script>
 </head>
 
@@ -70,14 +71,14 @@
     <div class="row">
 
 
-        <p>The virtual yellow became indispensable as soon as it appeared for the first time on television in the
+        <p>The virtual yellow line became indispensable as soon as it appeared for the first time on television in the
             90's. The first down line has forever change the way we look at football on television, adding crucial
             information about the distance the ball carrier need to get to in order to get a first down. However, in
             the non-professional industry, football coaches and managers have no way of virtually adding these
             important lines to their footage. With 1,085,272 highschool athletes in 2016, football is the no.1
             participation sport in the U.S. Companies like <a href="http://www.hudl.com/home">Hudl</a> have taken
             over the football footage management using web application. Having this kind of footage available on a
-            backend server represent tremendous possibility to create automation process in order to add values to
+            backend server represents tremendous possibility to create automation process in order to add values to
             this footage with things such as first down and scrimmage lines.</p>
         <img style="max-height: 400px;display: block;
     margin: 0 auto;"
@@ -171,10 +172,10 @@
         <p>
             We first blur the image to help the Canny detector to find smoother
             contours in the frame. We than use a Canny detector to find the contours.
-            With of mask of the playing field (explained later) we can cut out un desired
-            parts of the image. We can than find lines with the HoughLine detector algorithm.
-            This algorithm will find all straight lines of a specific length minimum.
-            We can then cluster the many lines into groups and find the median of the cluster.
+            With a mask of the playing field (explained later) we can cut out a desired
+            part of the image. We can then find lines with the HoughLine detector algorithm.
+            This algorithm will find all straight lines of a specific minimum length.
+            We can then cluster the different lines into groups and find the median of the cluster.
             This will reveal all the lines of the field that are visible. Finaly we use a SSD to find
             the closest lines between to frames. We use at most 3 lines to do the Homography.
         </p>
